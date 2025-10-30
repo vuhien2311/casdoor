@@ -21,18 +21,17 @@ services:
       - db_data:/var/lib/mysql # <<<< Dùng named volume, KHÔNG bind ./data/mysql
 
   casdoor:
-    image: casbin/casdoor:latest
+    build: . # 👈 build từ Dockerfile local
     restart: always
     depends_on:
       db:
         condition: service_healthy
-    entrypoint: /bin/sh -c './server --createDatabase=true'
     environment:
       RUNNING_IN_DOCKER: "true"
     ports:
       - "8000:8000"
     volumes:
       - ./conf:/conf
-
+      - ./web/build:/web/build
 volumes:
   db_data:

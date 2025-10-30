@@ -27,7 +27,7 @@ class TokenListPage extends BaseListPage {
     const randomName = Setting.getRandomName();
     const organizationName = Setting.getRequestOrganization(this.props.account);
     return {
-      owner: "admin", // this.props.account.tokenname,
+      owner: "admin",
       name: `token_${randomName}`,
       createdTime: moment().format(),
       application: "app-built-in",
@@ -45,14 +45,26 @@ class TokenListPage extends BaseListPage {
     TokenBackend.addToken(newToken)
       .then((res) => {
         if (res.status === "ok") {
-          this.props.history.push({pathname: `/tokens/${newToken.name}`, mode: "add"});
-          Setting.showMessage("success", i18next.t("general:Successfully added"));
+          this.props.history.push({
+            pathname: `/tokens/${newToken.name}`,
+            mode: "add",
+          });
+          Setting.showMessage(
+            "success",
+            i18next.t("general:Successfully added")
+          );
         } else {
-          Setting.showMessage("error", `${i18next.t("general:Failed to add")}: ${res.msg}`);
+          Setting.showMessage(
+            "error",
+            `${i18next.t("general:Failed to add")}: ${res.msg}`
+          );
         }
       })
-      .catch(error => {
-        Setting.showMessage("error", `${i18next.t("general:Failed to connect to server")}: ${error}`);
+      .catch((error) => {
+        Setting.showMessage(
+          "error",
+          `${i18next.t("general:Failed to connect to server")}: ${error}`
+        );
       });
   }
 
@@ -60,19 +72,32 @@ class TokenListPage extends BaseListPage {
     TokenBackend.deleteToken(this.state.data[i])
       .then((res) => {
         if (res.status === "ok") {
-          Setting.showMessage("success", i18next.t("general:Successfully deleted"));
+          Setting.showMessage(
+            "success",
+            i18next.t("general:Successfully deleted")
+          );
           this.fetch({
             pagination: {
               ...this.state.pagination,
-              current: this.state.pagination.current > 1 && this.state.data.length === 1 ? this.state.pagination.current - 1 : this.state.pagination.current,
+              current:
+                this.state.pagination.current > 1 &&
+                this.state.data.length === 1
+                  ? this.state.pagination.current - 1
+                  : this.state.pagination.current,
             },
           });
         } else {
-          Setting.showMessage("error", `${i18next.t("general:Failed to delete")}: ${res.msg}`);
+          Setting.showMessage(
+            "error",
+            `${i18next.t("general:Failed to delete")}: ${res.msg}`
+          );
         }
       })
-      .catch(error => {
-        Setting.showMessage("error", `${i18next.t("general:Failed to connect to server")}: ${error}`);
+      .catch((error) => {
+        Setting.showMessage(
+          "error",
+          `${i18next.t("general:Failed to connect to server")}: ${error}`
+        );
       });
   }
 
@@ -82,17 +107,11 @@ class TokenListPage extends BaseListPage {
         title: i18next.t("general:Name"),
         dataIndex: "name",
         key: "name",
-        width: (Setting.isMobile()) ? "100px" : "300px",
+        width: Setting.isMobile() ? "100px" : "300px",
         fixed: "left",
         sorter: true,
         ...this.getColumnSearchProps("name"),
-        render: (text, record, index) => {
-          return (
-            <Link to={`/tokens/${text}`}>
-              {text}
-            </Link>
-          );
-        },
+        render: (text) => <Link to={`/tokens/${text}`}>{text}</Link>,
       },
       {
         title: i18next.t("general:Created time"),
@@ -100,9 +119,7 @@ class TokenListPage extends BaseListPage {
         key: "createdTime",
         width: "160px",
         sorter: true,
-        render: (text, record, index) => {
-          return Setting.getFormattedDate(text);
-        },
+        render: (text) => Setting.getFormattedDate(text),
       },
       {
         title: i18next.t("general:Application"),
@@ -111,13 +128,11 @@ class TokenListPage extends BaseListPage {
         width: "120px",
         sorter: true,
         ...this.getColumnSearchProps("application"),
-        render: (text, record, index) => {
-          return (
-            <Link to={`/applications/${record.organization}/${text}`}>
-              {text}
-            </Link>
-          );
-        },
+        render: (text, record) => (
+          <Link to={`/applications/${record.organization}/${text}`}>
+            {text}
+          </Link>
+        ),
       },
       {
         title: i18next.t("general:Organization"),
@@ -126,13 +141,7 @@ class TokenListPage extends BaseListPage {
         width: "120px",
         sorter: true,
         ...this.getColumnSearchProps("organization"),
-        render: (text, record, index) => {
-          return (
-            <Link to={`/organizations/${text}`}>
-              {text}
-            </Link>
-          );
-        },
+        render: (text) => <Link to={`/organizations/${text}`}>{text}</Link>,
       },
       {
         title: i18next.t("general:User"),
@@ -141,13 +150,9 @@ class TokenListPage extends BaseListPage {
         width: "120px",
         sorter: true,
         ...this.getColumnSearchProps("user"),
-        render: (text, record, index) => {
-          return (
-            <Link to={`/users/${record.organization}/${text}`}>
-              {text}
-            </Link>
-          );
-        },
+        render: (text, record) => (
+          <Link to={`/users/${record.organization}/${text}`}>{text}</Link>
+        ),
       },
       {
         title: i18next.t("token:Authorization code"),
@@ -156,9 +161,7 @@ class TokenListPage extends BaseListPage {
         width: "180px",
         sorter: true,
         ...this.getColumnSearchProps("code"),
-        render: (text, record, index) => {
-          return Setting.getClickable(text);
-        },
+        render: (text) => Setting.getClickable(text),
       },
       {
         title: i18next.t("token:Access token"),
@@ -168,8 +171,9 @@ class TokenListPage extends BaseListPage {
         sorter: true,
         ellipsis: true,
         ...this.getColumnSearchProps("accessToken"),
-        render: (text, record, index) => {
-          return Setting.getClickable(text);
+        // ✅ Ẩn token hoàn toàn (mask)
+        render: () => {
+          return <span style={{fontFamily: "monospace"}}>********</span>;
         },
       },
       {
@@ -188,31 +192,31 @@ class TokenListPage extends BaseListPage {
         sorter: true,
         ...this.getColumnSearchProps("scope"),
       },
-      // {
-      //   title: i18next.t("token:Token type"),
-      //   dataIndex: 'tokenType',
-      //   key: 'tokenType',
-      //   width: '130px',
-      //   sorter: (a, b) => a.tokenType.localeCompare(b.tokenType),
-      // },
       {
         title: i18next.t("general:Action"),
         dataIndex: "",
         key: "op",
         width: "170px",
-        fixed: (Setting.isMobile()) ? "false" : "right",
-        render: (text, record, index) => {
-          return (
-            <div>
-              <Button style={{marginTop: "10px", marginBottom: "10px", marginRight: "10px"}} type="primary" onClick={() => this.props.history.push(`/tokens/${record.name}`)}>{i18next.t("general:Edit")}</Button>
-              <PopconfirmModal
-                title={i18next.t("general:Sure to delete") + `: ${record.name} ?`}
-                onConfirm={() => this.deleteToken(index)}
-              >
-              </PopconfirmModal>
-            </div>
-          );
-        },
+        fixed: Setting.isMobile() ? "false" : "right",
+        render: (text, record, index) => (
+          <div>
+            <Button
+              style={{
+                marginTop: "10px",
+                marginBottom: "10px",
+                marginRight: "10px",
+              }}
+              type="primary"
+              onClick={() => this.props.history.push(`/tokens/${record.name}`)}
+            >
+              {i18next.t("general:Edit")}
+            </Button>
+            <PopconfirmModal
+              title={i18next.t("general:Sure to delete") + `: ${record.name} ?`}
+              onConfirm={() => this.deleteToken(index)}
+            />
+          </div>
+        ),
       },
     ];
 
@@ -220,16 +224,32 @@ class TokenListPage extends BaseListPage {
       total: this.state.pagination.total,
       showQuickJumper: true,
       showSizeChanger: true,
-      showTotal: () => i18next.t("general:{total} in total").replace("{total}", this.state.pagination.total),
+      showTotal: () =>
+        i18next
+          .t("general:{total} in total")
+          .replace("{total}", this.state.pagination.total),
     };
 
     return (
       <div>
-        <Table scroll={{x: "100%"}} columns={columns} dataSource={tokens} rowKey={(record) => `${record.owner}/${record.name}`} size="middle" bordered pagination={paginationProps}
+        <Table
+          scroll={{x: "100%"}}
+          columns={columns}
+          dataSource={tokens}
+          rowKey={(record) => `${record.owner}/${record.name}`}
+          size="middle"
+          bordered
+          pagination={paginationProps}
           title={() => (
             <div>
               {i18next.t("general:Tokens")}&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button type="primary" size="small" onClick={this.addToken.bind(this)}>{i18next.t("general:Add")}</Button>
+              <Button
+                type="primary"
+                size="small"
+                onClick={this.addToken.bind(this)}
+              >
+                {i18next.t("general:Add")}
+              </Button>
             </div>
           )}
           loading={this.state.loading}
@@ -240,34 +260,39 @@ class TokenListPage extends BaseListPage {
   }
 
   fetch = (params = {}) => {
-    const field = params.searchedColumn, value = params.searchText;
-    const sortField = params.sortField, sortOrder = params.sortOrder;
+    const field = params.searchedColumn,
+      value = params.searchText;
+    const sortField = params.sortField,
+      sortOrder = params.sortOrder;
     this.setState({loading: true});
-    TokenBackend.getTokens("admin", Setting.isDefaultOrganizationSelected(this.props.account) ? "" : Setting.getRequestOrganization(this.props.account), params.pagination.current, params.pagination.pageSize, field, value, sortField, sortOrder)
-      .then((res) => {
+    TokenBackend.getTokens(
+      "admin",
+      Setting.isDefaultOrganizationSelected(this.props.account)
+        ? ""
+        : Setting.getRequestOrganization(this.props.account),
+      params.pagination.current,
+      params.pagination.pageSize,
+      field,
+      value,
+      sortField,
+      sortOrder
+    ).then((res) => {
+      this.setState({loading: false});
+      if (res.status === "ok") {
         this.setState({
-          loading: false,
+          data: res.data,
+          pagination: {...params.pagination, total: res.data2},
+          searchText: params.searchText,
+          searchedColumn: params.searchedColumn,
         });
-        if (res.status === "ok") {
-          this.setState({
-            data: res.data,
-            pagination: {
-              ...params.pagination,
-              total: res.data2,
-            },
-            searchText: params.searchText,
-            searchedColumn: params.searchedColumn,
-          });
+      } else {
+        if (Setting.isResponseDenied(res)) {
+          this.setState({isAuthorized: false});
         } else {
-          if (Setting.isResponseDenied(res)) {
-            this.setState({
-              isAuthorized: false,
-            });
-          } else {
-            Setting.showMessage("error", res.msg);
-          }
+          Setting.showMessage("error", res.msg);
         }
-      });
+      }
+    });
   };
 }
 

@@ -43,13 +43,18 @@ func (c *ApiController) GetTokens() {
 	sortOrder := c.Input().Get("sortOrder")
 	organization := c.Input().Get("organization")
 	if limit == "" || page == "" {
-		token, err := object.GetTokens(owner, organization)
+		tokens, err := object.GetTokens(owner, organization)
 		if err != nil {
 			c.ResponseError(err.Error())
 			return
 		}
 
-		c.ResponseOk(token)
+		// Hide access token before returning
+		for i := range tokens {
+			tokens[i].AccessToken = ""
+		}
+
+		c.ResponseOk(tokens)
 	} else {
 		limit := util.ParseInt(limit)
 		count, err := object.GetTokenCount(owner, organization, field, value)
@@ -63,6 +68,11 @@ func (c *ApiController) GetTokens() {
 		if err != nil {
 			c.ResponseError(err.Error())
 			return
+		}
+
+		// Hide access token before returning
+		for i := range tokens {
+			tokens[i].AccessToken = ""
 		}
 
 		c.ResponseOk(tokens, paginator.Nums())
@@ -82,6 +92,11 @@ func (c *ApiController) GetToken() {
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
+	}
+
+	// Hide access token before returning
+	if token != nil {
+		token.AccessToken = ""
 	}
 
 	c.ResponseOk(token)
