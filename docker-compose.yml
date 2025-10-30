@@ -1,37 +1,49 @@
 version: "3.8"
+
 services:
   db:
-    image: mysql:8.0.33
+    image: postgres:16
     platform: linux/amd64
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: casdoor
-      MYSQL_USER: casdoor
-      MYSQL_PASSWORD: change_me
-    command: --default-authentication-plugin=mysql_native_password
+      POSTGRES_USER: casdoor
+      POSTGRES_PASSWORD: change_me
+      POSTGRES_DB: casdoor
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p123456"]
+      test: ["CMD-SHELL", "pg_isready -U casdoor"]
       interval: 5s
       timeout: 3s
       retries: 30
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql # <<<< Dùng named volume, KHÔNG bind ./data/mysql
+      - pg_data:/var/lib/postgresql/data
 
   casdoor:
-    build: . # 👈 build từ Dockerfile local
+    # Dùng image chính thức (khuyến nghị), hoặc bỏ dòng image và giữ build: .
+    image: casbin/casdoor:latest
+    # build: .   # <- bỏ comment nếu bạn muốn build từ Dockerfile local
     restart: always
     depends_on:
       db:
         condition: service_healthy
     environment:
       RUNNING_IN_DOCKER: "true"
+
+      # Casdoor đọc key 'driverName' / 'dataSourceName' trong app.conf.
+      # Để chắc ăn, set cả lowercase & UPPERCASE.
+      driverName: "postgres"
+      dataSourceName: "user=casdoor password=change_me host=db port=5432 dbname=casdoor sslmode=disable"
+      DRIVER_NAME: "postgres"
+      DATA_SOURCE_NAME: "user=casdoor password=change_me host=db port=5432 dbname=casdoor sslmode=disable"
     ports:
       - "8000:8000"
     volumes:
-      - ./conf:/conf
-      - ./web/build:/web/build
+      - ./conf:/conf # app.conf, init_data.json...
+      - ./web/build:/web/build # FE build (nếu dùng)
+      - ./uploads:/files # ✅ Storage LocalFS → set Path prefix = /files/uploads trong Provider
+      - casdoor_logs:/app/logs # (tùy chọn) lưu log
+
 volumes:
-  db_data:
+  pg_data:
+  casdoor_logs:
